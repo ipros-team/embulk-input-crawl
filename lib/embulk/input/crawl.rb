@@ -179,7 +179,9 @@ module Embulk
                     record[column.name]
                   }
                   page_builder.add(values)
-                  if record['code'] < 400
+                  if record['code'].nil?
+                    error_urls << url
+                  elsif record['code'] < 400
                     success_urls << url
                   else
                     error_urls << url
