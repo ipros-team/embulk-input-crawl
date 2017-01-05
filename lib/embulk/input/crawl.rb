@@ -1,5 +1,4 @@
 require 'anemone'
-require 'addressable/uri'
 require 'pp'
 
 module Embulk
@@ -139,8 +138,9 @@ module Embulk
       private
 
       def proc_payload(payload)
-        base_url = payload[@url_key_of_payload]
-        base_url_path = Addressable::URI.parse(base_url).path
+        base_url = URI.parse(payload[@url_key_of_payload]) rescue nil
+        return payload[@url_key_of_payload] if base_url.nil?
+        base_url_path = base_url.path
 
         if should_process_payload?(base_url)
           Embulk.logger.info("crawling.. => #{base_url}")
@@ -192,7 +192,7 @@ module Embulk
           end
           Embulk.logger.info("crawled => #{base_url}, crawled_urls count => #{crawled_urls.size}, success_urls count => #{success_urls.size}, error_urls => #{error_urls.size}")
         end
-        base_url
+        base_url.to_s
       end
 
       def should_process_payload?(base_url)
@@ -282,7 +282,7 @@ module Embulk
                 unless redirect_url.size == redirect_url.bytesize
                   redirect_url = URI.encode(redirect_url)
                 end
-                return Addressable::URI.parse(redirect_url)
+                return URI.parse(redirect_url) rescue nil
               end
             end
           end
