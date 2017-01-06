@@ -141,8 +141,12 @@ module Embulk
       private
 
       def proc_payload(payload)
-        base_url = URI.parse(payload[@url_key_of_payload]) rescue nil
-        return payload[@url_key_of_payload] if base_url.nil?
+        url_of_payload = payload[@url_key_of_payload]
+        base_url = URI.parse(url_of_payload) rescue nil
+        if base_url.nil?
+          Embulk.logger.warn("parse error => #{url_of_payload}")
+          return url_of_payload
+        end
         base_url_path = base_url.path
 
         if should_process_payload?(base_url)
