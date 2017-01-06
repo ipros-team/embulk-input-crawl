@@ -122,6 +122,7 @@ module Embulk
         @option[:read_timeout] = task['read_timeout'] if task['read_timeout']
         @option[:redirect_limit] = task['redirect_limit'] if task['redirect_limit']
         @option[:cookies] = task['cookies'] if task['cookies']
+        Embulk.logger.debug("option => #{@option}")
       end
 
       def run
