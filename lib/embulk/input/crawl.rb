@@ -48,6 +48,7 @@ module Embulk
           "crawl_url_regexp" => config.param("crawl_url_regexp", :string, default: nil),
           "reject_url_regexp" => config.param("reject_url_regexp", :string, default: nil),
           "user_agent" => config.param("user_agent", :string, default: nil),
+          "discard_page_bodies" => config.param("discard_page_bodies", :bool, default: false),
           "obey_robots_txt" => config.param("obey_robots_txt", :bool, default: false),
           "skip_query_strings" => config.param("skip_query_strings", :bool, default: false),
           "add_payload_to_record" => config.param("add_payload_to_record", :bool, default: false),
@@ -110,6 +111,7 @@ module Embulk
 
         @option = {
           threads: 1,
+          discard_page_bodies: task["discard_page_bodies"],
           obey_robots_txt: task["obey_robots_txt"],
           skip_query_strings: task["skip_query_strings"],
           accept_cookies: task["accept_cookies"],
