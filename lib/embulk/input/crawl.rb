@@ -97,6 +97,7 @@ module Embulk
 
       def init
         @payloads = task["payloads_groups"][@index]
+        @thread_size = task["payloads_groups"].size
         @add_payload_to_record = task["add_payload_to_record"]
         @reject_url_regexp = Regexp.new(task["reject_url_regexp"]) if task['reject_url_regexp']
         @crawl_url_regexp = Regexp.new(task["crawl_url_regexp"]) if task['crawl_url_regexp']
@@ -128,8 +129,8 @@ module Embulk
       def run
         Embulk.logger.debug("Process payload this thread => #{@payloads}")
         done_urls = []
-        @payloads.each do |payload|
-          done_urls << proc_payload(payload)
+        @payloads.each_with_index do |payload, i|
+          done_urls << proc_payload(payload, i)
         end
 
         page_builder.finish
@@ -140,7 +141,7 @@ module Embulk
 
       private
 
-      def proc_payload(payload)
+      def proc_payload(payload, i)
         url_of_payload = payload[@url_key_of_payload]
         base_url = URI.parse(url_of_payload) rescue nil
         if base_url.nil?
@@ -187,7 +188,7 @@ module Embulk
                 end
               end
               if crawl_counter == @page_limit
-                Embulk.logger.info("crawled => #{base_url}, crawled_urls count => #{crawl_counter}, success_urls count => #{success_urls.size}, error_urls => #{error_urls.size}")
+                Embulk.logger.info("crawled => #{base_url}, state => { thread => (#{@index + 1}/#{@thread_size}), url => (#{i + 1}/#{@payloads.size}) }, crawled_urls count => #{crawl_counter}, success_urls count => #{success_urls.size}, error_urls => #{error_urls.size}")
                 return base_url.to_s
               end
             end
