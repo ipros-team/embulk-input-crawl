@@ -153,51 +153,46 @@ module Embulk
           Embulk.logger.info("crawling.. => #{base_url}")
 
           crawl_counter = 0
-          crawled_urls = Set.new
           success_urls = []
           error_urls = []
           Anemone.crawl(base_url, @option) do |anemone|
             anemone.skip_links_like(@reject_url_regexp) if @reject_url_regexp
 
             anemone.focus_crawl do |page|
-              page.links(exclude_nofollow: true).keep_if { |link|
-                if @page_limit && (crawl_counter >= @page_limit)
-                  false
-                else
-                  is_crawl = crawl?(link, base_url_path)
-                  crawl_counter += 1 if is_crawl
-                  is_crawl
-                end
+              crawl_links = page.links(exclude_nofollow: true).keep_if { |link|
+                crawl?(link, base_url_path)
               }
+              crawl_links
             end
 
             anemone.on_every_page do |page|
               redirect_url = redirect_url(page)
               if redirect_url
-                if crawled_urls.add?(redirect_url)
-                  page.links << redirect_url
-                end
+                page.links << redirect_url
               else
                 url = page.url
-                if crawled_urls.add?(url)
-                  record = make_record(page, payload)
+                record = make_record(page, payload)
+                crawl_counter += 1
 
-                  values = schema.map { |column|
-                    record[column.name]
-                  }
-                  page_builder.add(values)
-                  if record['code'].nil?
-                    error_urls << url
-                  elsif record['code'] < 400
-                    success_urls << url
-                  else
-                    error_urls << url
-                  end
+                values = schema.map { |column|
+                  record[column.name]
+                }
+                page_builder.add(values)
+                if record['code'].nil?
+                  error_urls << url
+                elsif record['code'] < 400
+                  success_urls << url
+                else
+                  error_urls << url
                 end
+              end
+              if crawl_counter == @page_limit
+                Embulk.logger.info("crawled => #{base_url}, crawled_urls count => #{crawl_counter}, success_urls count => #{success_urls.size}, error_urls => #{error_urls.size}")
+                return base_url.to_s
               end
             end
           end
-          Embulk.logger.info("crawled => #{base_url}, crawled_urls count => #{crawled_urls.size}, success_urls count => #{success_urls.size}, error_urls => #{error_urls.size}")
+          Embulk.logger.info("crawled => #{base_url}, crawled_urls count => #{crawl_counter}, success_urls count => #{success_urls.size}, error_urls => #{error_urls.size}")
         end
         base_url.to_s
       end
