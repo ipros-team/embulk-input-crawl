@@ -143,14 +143,14 @@ module Embulk
 
       def proc_payload(payload, i)
         url_of_payload = payload[@url_key_of_payload]
-        base_url = URI.parse(url_of_payload) rescue nil
+        base_url = URI.parse(url_of_payload).normalize rescue nil
         if base_url.nil?
           Embulk.logger.warn("parse error => #{url_of_payload}")
-          return url_of_payload
+          return payload
         end
         base_url_path = base_url.path
 
-        if should_process_payload?(base_url)
+        if should_process_payload?(payload)
           Embulk.logger.info("crawling.. => #{base_url}, state => { thread => (#{@index + 1}/#{@thread_size}), url => (#{i + 1}/#{@payloads.size}) }")
 
           crawl_counter = 0
@@ -189,18 +189,18 @@ module Embulk
               end
               if crawl_counter == @page_limit
                 Embulk.logger.info("crawled => #{base_url}, state => { thread => (#{@index + 1}/#{@thread_size}), url => (#{i + 1}/#{@payloads.size}) }, crawled_urls count => #{crawl_counter}, success_urls count => #{success_urls.size}, error_urls => #{error_urls.size}")
-                return base_url.to_s
+                return payload
               end
             end
           end
           Embulk.logger.info("crawled => #{base_url}, state => { thread => (#{@index + 1}/#{@thread_size}), url => (#{i + 1}/#{@payloads.size}) }, crawled_urls count => #{crawl_counter}, success_urls count => #{success_urls.size}, error_urls => #{error_urls.size}")
         end
-        base_url.to_s
+        payload
       end
 
-      def should_process_payload?(base_url)
+      def should_process_payload?(payload)
         if task['done_urls']
-          !task['done_urls'].include?(base_url)
+          !task['done_urls'].include?(payload)
         else
           true
         end
