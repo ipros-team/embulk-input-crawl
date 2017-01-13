@@ -196,6 +196,8 @@ module Embulk
           Embulk.logger.info("crawled => #{base_url}, state => { thread => (#{@index + 1}/#{@thread_size}), url => (#{i + 1}/#{@payloads.size}) }, crawled_urls count => #{crawl_counter}, success_urls count => #{success_urls.size}, error_urls => #{error_urls.size}")
         end
         payload
+      rescue => e
+        nil
       end
 
       def should_process_payload?(payload)
