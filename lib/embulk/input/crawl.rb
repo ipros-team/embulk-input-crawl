@@ -43,6 +43,7 @@ module Embulk
 
       def self.transaction(config, &control)
         task = {
+          "storage_path" => config['storage_path'],
           "done_url_groups" => config['done_url_groups'],
           "url_key_of_payload" => config.param("url_key_of_payload", :string, default: 'url'),
           "crawl_url_regexp" => config.param("crawl_url_regexp", :string, default: nil),
@@ -117,6 +118,9 @@ module Embulk
           skip_query_strings: task["skip_query_strings"],
           accept_cookies: task["accept_cookies"],
         }
+        if task['storage_path']
+          @option[:storage] = Anemone::Storage.PStore("#{task['storage_path']}.#{@index}")
+        end
         @option[:user_agent] = task['user_agent'] if task['user_agent']
         @option[:delay] = task['delay'] if task['delay']
         @option[:depth_limit] = task['depth_limit'] if task['depth_limit']
