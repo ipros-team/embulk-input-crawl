@@ -118,9 +118,7 @@ module Embulk
           skip_query_strings: task["skip_query_strings"],
           accept_cookies: task["accept_cookies"],
         }
-        if task['storage_path']
-          @option[:storage] = Anemone::Storage.PStore("#{task['storage_path']}.#{@index}")
-        end
+        @storage_path = task['storage_path'] if task['storage_path']
         @option[:user_agent] = task['user_agent'] if task['user_agent']
         @option[:delay] = task['delay'] if task['delay']
         @option[:depth_limit] = task['depth_limit'] if task['depth_limit']
@@ -160,6 +158,11 @@ module Embulk
           crawl_counter = 0
           success_urls = []
           error_urls = []
+
+          if task['storage_path']
+            @option[:storage] = Anemone::Storage.PStore("#{@storage_path}.#{@index}.#{i}")
+          end
+
           Anemone.crawl(base_url, @option) do |anemone|
             anemone.skip_links_like(@reject_url_regexp) if @reject_url_regexp
 
