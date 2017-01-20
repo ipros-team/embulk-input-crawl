@@ -203,6 +203,7 @@ module Embulk
         end
         payload
       rescue => e
+        Embulk.logger.error("crawled => #{base_url}, #{e.message}\n#{e.backtrace.join("\n")}")
         nil
       end
 
