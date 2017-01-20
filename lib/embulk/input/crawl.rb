@@ -156,8 +156,6 @@ module Embulk
         base_url_path = base_url.path
 
         if should_process_payload?(payload)
-          Embulk.logger.info("crawling.. => #{base_url}, state => { thread => (#{@index + 1}/#{@thread_size}), url => (#{i + 1}/#{@payloads.size}) }")
-
           crawl_counter = 0
           success_urls = []
           error_urls = []
@@ -193,6 +191,11 @@ module Embulk
                   error_urls << url
                 end
               end
+
+              if crawl_counter.modulo(1000) == 0
+                Embulk.logger.info("crawling.. => #{base_url}, #{crawl_counter} done, state => { thread => (#{@index + 1}/#{@thread_size}), url => (#{i + 1}/#{@payloads.size}) }")
+              end
+
               if crawl_counter == @page_limit
                 Embulk.logger.info("crawled => #{base_url}, state => { thread => (#{@index + 1}/#{@thread_size}), url => (#{i + 1}/#{@payloads.size}) }, crawled_urls count => #{crawl_counter}, success_urls count => #{success_urls.size}, error_urls => #{error_urls.size}")
                 return payload
