@@ -1,5 +1,6 @@
 require 'anemone'
 require 'pp'
+require 'redis'
 
 module Embulk
   module Input
@@ -43,7 +44,7 @@ module Embulk
 
       def self.transaction(config, &control)
         task = {
-          "storage_path" => config['storage_path'],
+          "storage_code" => config.param("storage_code", :string, default: nil),
           "done_url_groups" => config['done_url_groups'],
           "url_key_of_payload" => config.param("url_key_of_payload", :string, default: 'url'),
           "crawl_url_regexp" => config.param("crawl_url_regexp", :string, default: nil),
@@ -120,13 +121,13 @@ module Embulk
           accept_cookies: task["accept_cookies"],
           verbose: task["verbose"],
         }
-        @storage_path = task['storage_path'] if task['storage_path']
         @option[:user_agent] = task['user_agent'] if task['user_agent']
         @option[:delay] = task['delay'] if task['delay']
         @option[:depth_limit] = task['depth_limit'] if task['depth_limit']
         @option[:read_timeout] = task['read_timeout'] if task['read_timeout']
         @option[:redirect_limit] = task['redirect_limit'] if task['redirect_limit']
         @option[:cookies] = task['cookies'] if task['cookies']
+        @option[:storage] = eval(task['storage_code']) if task['storage_code']
         Embulk.logger.debug("option => #{@option}")
       end
 
@@ -160,10 +161,6 @@ module Embulk
           crawl_counter = 0
           success_urls = []
           error_urls = []
-
-          if task['storage_path']
-            @option[:storage] = Anemone::Storage.PStore("#{@storage_path}.#{@index}.#{i}")
-          end
 
           Anemone.crawl(base_url, @option) do |anemone|
             anemone.skip_links_like(@reject_url_regexp) if @reject_url_regexp
