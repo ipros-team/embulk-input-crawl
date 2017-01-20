@@ -288,7 +288,7 @@ module Embulk
         if doc
           doc.search('meta').each do |meta|
             if meta.attribute('http-equiv')&.value =~ /(r|R)efresh/
-              meta_content_value = meta.attribute('content').value
+              meta_content_value = meta.attribute('content')&.value
               if meta_content_value
                 redirect_url = meta_content_value.sub(/.*(url|URL)=/, '').strip.split(';')[0]
                 unless redirect_url =~ /^http(|s)/
