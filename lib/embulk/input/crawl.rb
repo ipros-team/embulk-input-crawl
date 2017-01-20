@@ -49,6 +49,7 @@ module Embulk
           "crawl_url_regexp" => config.param("crawl_url_regexp", :string, default: nil),
           "reject_url_regexp" => config.param("reject_url_regexp", :string, default: nil),
           "user_agent" => config.param("user_agent", :string, default: nil),
+          "verbose" => config.param("verbose", :bool, default: false),
           "discard_page_bodies" => config.param("discard_page_bodies", :bool, default: false),
           "obey_robots_txt" => config.param("obey_robots_txt", :bool, default: false),
           "skip_query_strings" => config.param("skip_query_strings", :bool, default: false),
@@ -117,6 +118,7 @@ module Embulk
           obey_robots_txt: task["obey_robots_txt"],
           skip_query_strings: task["skip_query_strings"],
           accept_cookies: task["accept_cookies"],
+          verbose: task["verbose"],
         }
         @storage_path = task['storage_path'] if task['storage_path']
         @option[:user_agent] = task['user_agent'] if task['user_agent']
