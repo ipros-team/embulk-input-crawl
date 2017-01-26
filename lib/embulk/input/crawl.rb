@@ -248,7 +248,7 @@ module Embulk
 
       def get_body(doc)
         return nil if doc.nil?
-        if @remove_style_on_body
+        if @remove_script_on_body
           doc.search('script').each do |script|
             script.content = ''
           end
