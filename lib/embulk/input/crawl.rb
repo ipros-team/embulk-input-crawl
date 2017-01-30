@@ -291,13 +291,15 @@ module Embulk
               meta_content_value = meta.attribute('content')&.value
               if meta_content_value
                 redirect_url = meta_content_value.sub(/.*(url|URL)=/, '').strip.split(';')[0]
-                unless redirect_url =~ /^http(|s)/
-                  redirect_url = page.url.to_s.sub(/\/$/, '') + '/' + redirect_url.sub(/^\//, '')
+                if redirect_url
+                  unless redirect_url =~ /^http(|s)/
+                    redirect_url = page.url.to_s.sub(/\/$/, '') + '/' + redirect_url.sub(/^\//, '')
+                  end
+                  unless redirect_url.size == redirect_url.bytesize
+                    redirect_url = URI.encode(redirect_url)
+                  end
+                  return URI.parse(redirect_url) rescue nil
                 end
-                unless redirect_url.size == redirect_url.bytesize
-                  redirect_url = URI.encode(redirect_url)
-                end
-                return URI.parse(redirect_url) rescue nil
               end
             end
           end
